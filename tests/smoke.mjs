@@ -1,7 +1,7 @@
 import { readFileSync, existsSync } from "node:fs";
 import assert from "node:assert/strict";
 
-const rootFiles = ["index.html", "task1.html", "task2.html", "agent.md", "README.md"];
+const rootFiles = ["index.html", "task1.html", "task2.html", "agent.md", "README.md", ".gitignore", "scripts/fetch-tushare.mjs", "data/task1_daily_data.csv"];
 const notebooks = ["notebooks/task1.ipynb", "notebooks/task2.ipynb"];
 
 for (const file of [...rootFiles, ...notebooks]) {
@@ -24,7 +24,8 @@ assert.match(task1, /量化交易有哪些优势/);
 assert.match(task1, /K\s*线/);
 assert.match(task1, /TUSHARE_TOKEN/);
 assert.match(task1, /to_csv/);
-assert.match(task1, /获取真实数据/);
+assert.match(task1, /真实 Tushare/);
+assert.match(task1, /data\/task1_daily_data\.csv/);
 
 const task2 = readFileSync("task2.html", "utf8");
 assert.match(task2, /缺失值/);
@@ -32,11 +33,12 @@ assert.match(task2, /RSI/);
 assert.match(task2, /MACD/);
 assert.match(task2, /Bollinger Bands|布林带/);
 assert.match(task2, /OBV|ATR|KDJ|均线/);
-assert.match(task2, /不再生成模拟数据/);
+assert.match(task2, /data\/task1_daily_data\.csv/);
 
 const script = readFileSync("script.js", "utf8");
 assert.doesNotMatch(script, /makeDemoPrices|task1_demo_daily|模拟数据/);
 assert.match(script, /api\.tushare\.pro/);
+assert.match(script, /loadDefaultCsv/);
 
 for (const file of notebooks) {
   const notebook = JSON.parse(readFileSync(file, "utf8"));

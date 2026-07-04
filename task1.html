@@ -25,13 +25,13 @@
       <div class="card"><h3>技术面</h3><p>技术面主要研究价格、成交量和技术指标，试图从市场行为中判断趋势、支撑阻力和买卖时机。</p></div>
     </div>
 
-    <h2>3. 网页获取真实 Tushare 日线数据</h2>
-    <p>MCP 是 Codex/本机代理使用的工具协议，GitHub Pages 中的浏览器页面不能直接调用 MCP。下面改为直接请求 Tushare HTTP API；如果浏览器因 CORS 拦截，请使用下方 Python 代码或 `notebooks/task1.ipynb` 获取真实数据。</p>
+    <h2>3. 网页展示真实 Tushare 日线数据</h2>
+    <p>网页默认读取仓库中的 `data/task1_daily_data.csv`，该文件由本地 `.env` 中的 token 通过 `npm run fetch:data` 获取。MCP 是 Codex/本机代理使用的工具协议，GitHub Pages 中的浏览器页面不能直接调用 MCP。</p>
     <div class="panel soft">
       <div class="form-row">
         <label>股票代码<input id="stockInput" value="000001.SZ"></label>
-        <label>Tushare Token<input id="tokenInput" type="password" placeholder="只在当前浏览器中使用，不写入仓库"></label>
-        <button id="fetchTushare">获取真实数据</button>
+        <label>Tushare Token<input id="tokenInput" type="password" placeholder="可选：浏览器直接请求时填写"></label>
+        <button id="fetchTushare">浏览器尝试实时获取</button>
         <button id="downloadRealCsv" class="secondary">下载 CSV</button>
       </div>
       <p id="fetchStatus" class="note">尚未请求数据。</p>

@@ -79,6 +79,12 @@ function downloadText(filename, text) {
   URL.revokeObjectURL(url);
 }
 
+async function loadDefaultCsv() {
+  const response = await fetch("data/task1_daily_data.csv", { cache: "no-store" });
+  if (!response.ok) throw new Error("未找到 data/task1_daily_data.csv，请先运行 npm run fetch:data。");
+  return response.text();
+}
+
 function parseCsv(text) {
   const lines = text.trim().split(/\r?\n/);
   const header = lines.shift().split(",").map((item) => item.trim());
@@ -184,6 +190,22 @@ async function fetchTushareDaily() {
   }
 }
 
+async function initTask1RealData() {
+  const preview = document.getElementById("csvPreview");
+  const status = document.getElementById("fetchStatus");
+  if (!preview || !status) return;
+  try {
+    const csv = await loadDefaultCsv();
+    const rows = normalizeRows(parseCsv(csv));
+    preview.value = csv;
+    drawLineChart("closeChart", [{ values: rows.map((row) => row.close), color: "#1266d6" }], { title: "真实 Tushare 每日收盘价" });
+    document.getElementById("downloadRealCsv").onclick = () => downloadText("task1_daily_data.csv", csv);
+    status.textContent = `已加载仓库中的真实 Tushare CSV，共 ${rows.length} 条。`;
+  } catch (error) {
+    status.textContent = error.message;
+  }
+}
+
 function diagnose(rows) {
   const closes = rows.map((row) => Number(row.close)).filter(Number.isFinite);
   return {
@@ -248,6 +270,10 @@ window.addEventListener("DOMContentLoaded", () => {
     button.addEventListener("click", () => copyCode(button.dataset.copy));
   });
   document.getElementById("fetchTushare")?.addEventListener("click", fetchTushareDaily);
+  initTask1RealData();
+  loadDefaultCsv().then((csv) => {
+    if (document.getElementById("diagnosis")) analyzeRows(parseCsv(csv));
+  }).catch(() => {});
   document.getElementById("csvInput")?.addEventListener("change", async (event) => {
     const selected = event.target.files[0];
     if (!selected) return;
