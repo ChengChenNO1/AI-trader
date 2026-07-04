@@ -13,8 +13,9 @@
 - 新建两个本地可运行 notebook。
 - 新增 smoke test 检查页面与 notebook 的基础结构和格式要求。
 - 本机 Codex 配置已加入 `tushareMcp`，当前会话通常需要重启后才能把该 MCP 暴露为可调用工具。
+- 根据用户反馈，移除网页中的模拟行情数据。Task1 改为尝试直接请求 Tushare HTTP API 获取真实日线数据；Task2 改为只分析用户上传的真实 CSV。
 
 ## 后续跟进
 
 - GitHub Pages 使用 `main` 分支根目录发布。
-- 若要在浏览器中直接运行真实 Tushare 请求，需要额外后端代理；当前静态页只提供浏览器演示和本地 Python/notebook 运行路径。
+- MCP 不能被 GitHub Pages 静态网页直接调用；如果浏览器直接请求 Tushare 受 CORS 限制，需要增加后端代理或改用 notebook/Python 本地运行。

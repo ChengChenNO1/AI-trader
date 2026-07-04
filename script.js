@@ -3,38 +3,13 @@ function copyCode(id) {
   if (!node) return;
   navigator.clipboard.writeText(node.textContent).then(() => {
     const button = document.querySelector(`[data-copy="${id}"]`);
-    if (button) {
-      const old = button.textContent;
-      button.textContent = "已复制";
-      setTimeout(() => {
-        button.textContent = old;
-      }, 1200);
-    }
+    if (!button) return;
+    const old = button.textContent;
+    button.textContent = "已复制";
+    setTimeout(() => {
+      button.textContent = old;
+    }, 1200);
   });
-}
-
-function makeDemoPrices(days = 242) {
-  const rows = [];
-  let close = 12.8;
-  const start = new Date("2025-07-01");
-  for (let i = 0; i < days; i += 1) {
-    const date = new Date(start);
-    date.setDate(start.getDate() + i);
-    const wave = Math.sin(i / 13) * 0.13 + Math.cos(i / 29) * 0.08;
-    close = Math.max(8, close * (1 + wave / 10 + (i % 17 - 8) / 2200));
-    const open = close * (1 + Math.sin(i / 7) / 80);
-    const high = Math.max(open, close) * 1.018;
-    const low = Math.min(open, close) * 0.982;
-    rows.push({
-      trade_date: date.toISOString().slice(0, 10).replaceAll("-", ""),
-      open,
-      high,
-      low,
-      close,
-      vol: 100000 + (i % 31) * 2300
-    });
-  }
-  return rows;
 }
 
 function drawLineChart(canvasId, series, options = {}) {
@@ -49,8 +24,9 @@ function drawLineChart(canvasId, series, options = {}) {
   const width = canvas.width / ratio;
   const height = canvas.height / ratio;
   ctx.clearRect(0, 0, width, height);
-  const pad = { left: 46, right: 16, top: 18, bottom: 32 };
-  const values = series.flatMap((line) => line.values).filter((v) => Number.isFinite(v));
+  const pad = { left: 48, right: 18, top: 18, bottom: 32 };
+  const values = series.flatMap((line) => line.values).filter(Number.isFinite);
+  if (values.length === 0) return;
   const min = Math.min(...values);
   const max = Math.max(...values);
   const span = max - min || 1;
@@ -64,8 +40,7 @@ function drawLineChart(canvasId, series, options = {}) {
     ctx.moveTo(pad.left, y);
     ctx.lineTo(width - pad.right, y);
     ctx.stroke();
-    const label = (max - span * (i / 4)).toFixed(options.decimals ?? 2);
-    ctx.fillText(label, 6, y + 4);
+    ctx.fillText((max - span * (i / 4)).toFixed(options.decimals ?? 2), 6, y + 4);
   }
   series.forEach((line) => {
     ctx.strokeStyle = line.color;
@@ -88,15 +63,14 @@ function drawLineChart(canvasId, series, options = {}) {
 
 function toCsv(rows) {
   const header = ["trade_date", "open", "high", "low", "close", "vol"];
-  const lines = [header.join(",")];
-  for (const row of rows) {
-    lines.push(header.map((key) => Number.isFinite(row[key]) ? row[key].toFixed(4) : row[key]).join(","));
-  }
-  return lines.join("\n");
+  return [
+    header.join(","),
+    ...rows.map((row) => header.map((key) => row[key] ?? "").join(","))
+  ].join("\n");
 }
 
 function downloadText(filename, text) {
-  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const blob = new Blob([text], { type: "text/csv;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -105,14 +79,17 @@ function downloadText(filename, text) {
   URL.revokeObjectURL(url);
 }
 
-function initTask1Demo() {
-  const rows = makeDemoPrices();
-  drawLineChart("closeChart", [{ values: rows.map((row) => row.close), color: "#1266d6" }], { title: "模拟每日收盘价" });
-  const csv = toCsv(rows);
-  const preview = document.getElementById("csvPreview");
-  if (preview) preview.value = csv.split("\n").slice(0, 9).join("\n");
-  const button = document.getElementById("downloadDemoCsv");
-  if (button) button.addEventListener("click", () => downloadText("task1_demo_daily.csv", csv));
+function parseCsv(text) {
+  const lines = text.trim().split(/\r?\n/);
+  const header = lines.shift().split(",").map((item) => item.trim());
+  return lines.filter(Boolean).map((line) => {
+    const values = line.split(",");
+    return Object.fromEntries(header.map((key, i) => {
+      const value = values[i]?.trim();
+      const number = Number(value);
+      return [key, value === "" || Number.isNaN(number) ? value : number];
+    }));
+  });
 }
 
 function mean(values) {
@@ -125,10 +102,7 @@ function std(values) {
 }
 
 function rolling(values, n, fn) {
-  return values.map((_, i) => {
-    if (i + 1 < n) return NaN;
-    return fn(values.slice(i + 1 - n, i + 1));
-  });
+  return values.map((_, i) => i + 1 < n ? NaN : fn(values.slice(i + 1 - n, i + 1)));
 }
 
 function ema(values, span) {
@@ -156,13 +130,58 @@ function rsi(values, period = 14) {
   return out;
 }
 
-function parseCsv(text) {
-  const lines = text.trim().split(/\r?\n/);
-  const header = lines.shift().split(",").map((item) => item.trim());
-  return lines.map((line) => {
-    const values = line.split(",");
-    return Object.fromEntries(header.map((key, i) => [key, Number(values[i]) || values[i]]));
-  });
+function normalizeRows(rows) {
+  return rows
+    .map((row) => ({
+      trade_date: String(row.trade_date ?? ""),
+      open: Number(row.open),
+      high: Number(row.high),
+      low: Number(row.low),
+      close: Number(row.close),
+      vol: Number(row.vol)
+    }))
+    .filter((row) => row.trade_date && Number.isFinite(row.close))
+    .sort((a, b) => String(a.trade_date).localeCompare(String(b.trade_date)));
+}
+
+async function fetchTushareDaily() {
+  const token = document.getElementById("tokenInput")?.value.trim();
+  const tsCode = document.getElementById("stockInput")?.value.trim() || "000001.SZ";
+  const status = document.getElementById("fetchStatus");
+  const preview = document.getElementById("csvPreview");
+  if (!token) {
+    status.textContent = "请先输入 Tushare token。";
+    return;
+  }
+  const end = new Date();
+  const start = new Date();
+  start.setDate(end.getDate() - 365);
+  const fmt = (date) => date.toISOString().slice(0, 10).replaceAll("-", "");
+  status.textContent = "正在请求 Tushare 真实数据...";
+  try {
+    const response = await fetch("https://api.tushare.pro", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        api_name: "daily",
+        token,
+        params: { ts_code: tsCode, start_date: fmt(start), end_date: fmt(end) },
+        fields: "ts_code,trade_date,open,high,low,close,vol"
+      })
+    });
+    const json = await response.json();
+    if (json.code !== 0) throw new Error(json.msg || "Tushare 返回错误");
+    const fields = json.data.fields;
+    const rows = normalizeRows(json.data.items.map((item) => Object.fromEntries(fields.map((field, i) => [field, item[i]]))));
+    if (rows.length === 0) throw new Error("没有获取到数据，请检查股票代码或权限。");
+    const csv = toCsv(rows);
+    preview.value = csv;
+    drawLineChart("closeChart", [{ values: rows.map((row) => row.close), color: "#1266d6" }], { title: `${tsCode} 每日收盘价` });
+    document.getElementById("downloadRealCsv").onclick = () => downloadText("task1_daily_data.csv", csv);
+    status.textContent = `已获取 ${rows.length} 条真实日线数据。`;
+  } catch (error) {
+    status.textContent = `网页直接请求失败：${error.message}。若浏览器提示 CORS，这是 GitHub Pages 静态网页限制；请运行 notebook 获取真实数据。`;
+  }
 }
 
 function diagnose(rows) {
@@ -188,61 +207,50 @@ function renderDiagnosis(stats) {
     </table>`;
 }
 
-function initTask2Demo() {
-  let rows = makeDemoPrices();
-  const run = () => {
-    const closes = rows.map((row) => Number(row.close));
-    const highs = rows.map((row) => Number(row.high));
-    const lows = rows.map((row) => Number(row.low));
-    const volumes = rows.map((row) => Number(row.vol));
-    const rsi14 = rsi(closes, 14);
-    const dif = ema(closes, 12).map((v, i) => v - ema(closes, 26)[i]);
-    const dea = ema(dif, 9);
-    const macd = dif.map((v, i) => 2 * (v - dea[i]));
-    const mid = rolling(closes, 20, mean);
-    const sd = rolling(closes, 20, std);
-    const upper = mid.map((v, i) => v + 2 * sd[i]);
-    const lower = mid.map((v, i) => v - 2 * sd[i]);
-    const obv = [];
-    closes.forEach((close, i) => {
-      if (i === 0) {
-        obv.push(0);
-        return;
-      }
-      const prev = closes[i - 1];
-      obv.push(obv[i - 1] + (close > prev ? volumes[i] : close < prev ? -volumes[i] : 0));
-    });
-    renderDiagnosis(diagnose(rows));
-    drawLineChart("rsiChart", [{ values: rsi14, color: "#1266d6" }], { title: "RSI(14)" });
-    drawLineChart("macdChart", [
-      { values: dif, color: "#1266d6" },
-      { values: dea, color: "#d65a12" },
-      { values: macd, color: "#16704a", width: 1 }
-    ], { title: "MACD: DIF / DEA / MACD", decimals: 3 });
-    drawLineChart("bollChart", [
-      { values: closes, color: "#17212b" },
-      { values: upper, color: "#d65a12", width: 1.5 },
-      { values: mid, color: "#1266d6", width: 1.5 },
-      { values: lower, color: "#d65a12", width: 1.5 }
-    ], { title: "布林带: close / upper / mid / lower" });
-    drawLineChart("obvChart", [{ values: obv, color: "#16704a" }], { title: "OBV 能量潮", decimals: 0 });
-  };
-  run();
-  const file = document.getElementById("csvInput");
-  if (file) {
-    file.addEventListener("change", async (event) => {
-      const selected = event.target.files[0];
-      if (!selected) return;
-      rows = parseCsv(await selected.text());
-      run();
-    });
-  }
+function analyzeRows(rows) {
+  rows = normalizeRows(rows);
+  if (rows.length === 0) return;
+  const closes = rows.map((row) => row.close);
+  const volumes = rows.map((row) => row.vol);
+  const rsi14 = rsi(closes, 14);
+  const ema12 = ema(closes, 12);
+  const ema26 = ema(closes, 26);
+  const dif = ema12.map((value, i) => value - ema26[i]);
+  const dea = ema(dif, 9);
+  const macd = dif.map((value, i) => 2 * (value - dea[i]));
+  const mid = rolling(closes, 20, mean);
+  const sd = rolling(closes, 20, std);
+  const upper = mid.map((value, i) => value + 2 * sd[i]);
+  const lower = mid.map((value, i) => value - 2 * sd[i]);
+  const obv = [];
+  closes.forEach((close, i) => {
+    if (i === 0) obv.push(0);
+    else obv.push(obv[i - 1] + (close > closes[i - 1] ? volumes[i] : close < closes[i - 1] ? -volumes[i] : 0));
+  });
+  renderDiagnosis(diagnose(rows));
+  drawLineChart("rsiChart", [{ values: rsi14, color: "#1266d6" }], { title: "RSI(14)" });
+  drawLineChart("macdChart", [
+    { values: dif, color: "#1266d6" },
+    { values: dea, color: "#d65a12" },
+    { values: macd, color: "#16704a", width: 1 }
+  ], { title: "MACD: DIF / DEA / MACD", decimals: 3 });
+  drawLineChart("bollChart", [
+    { values: closes, color: "#17212b" },
+    { values: upper, color: "#d65a12", width: 1.5 },
+    { values: mid, color: "#1266d6", width: 1.5 },
+    { values: lower, color: "#d65a12", width: 1.5 }
+  ], { title: "布林带: close / upper / mid / lower" });
+  drawLineChart("obvChart", [{ values: obv, color: "#16704a" }], { title: "OBV 能量潮", decimals: 0 });
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll("[data-copy]").forEach((button) => {
     button.addEventListener("click", () => copyCode(button.dataset.copy));
   });
-  initTask1Demo();
-  initTask2Demo();
+  document.getElementById("fetchTushare")?.addEventListener("click", fetchTushareDaily);
+  document.getElementById("csvInput")?.addEventListener("change", async (event) => {
+    const selected = event.target.files[0];
+    if (!selected) return;
+    analyzeRows(parseCsv(await selected.text()));
+  });
 });

@@ -24,6 +24,7 @@ assert.match(task1, /量化交易有哪些优势/);
 assert.match(task1, /K\s*线/);
 assert.match(task1, /TUSHARE_TOKEN/);
 assert.match(task1, /to_csv/);
+assert.match(task1, /获取真实数据/);
 
 const task2 = readFileSync("task2.html", "utf8");
 assert.match(task2, /缺失值/);
@@ -31,6 +32,11 @@ assert.match(task2, /RSI/);
 assert.match(task2, /MACD/);
 assert.match(task2, /Bollinger Bands|布林带/);
 assert.match(task2, /OBV|ATR|KDJ|均线/);
+assert.match(task2, /不再生成模拟数据/);
+
+const script = readFileSync("script.js", "utf8");
+assert.doesNotMatch(script, /makeDemoPrices|task1_demo_daily|模拟数据/);
+assert.match(script, /api\.tushare\.pro/);
 
 for (const file of notebooks) {
   const notebook = JSON.parse(readFileSync(file, "utf8"));

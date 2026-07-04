@@ -16,15 +16,30 @@
   <main class="page">
     <h1>Task 1：量化交易基础与数据获取</h1>
     <h2>1. 相较于传统手工操作交易的方法，量化交易有哪些优势？</h2>
-    <p>量化交易把交易思想转化为可计算、可回测、可重复执行的规则。相比手工交易，它的优势主要包括：第一，执行纪律更强，减少情绪化追涨杀跌；第二，可以快速处理大量股票、行情和财务数据；第三，策略可以通过历史数据回测，提前评估收益、回撤和风险；第四，交易信号和下单过程可以自动化，提高速度和一致性；第五，便于持续优化和风险控制，例如设置止损、仓位限制和组合分散。</p>
+    <p>量化交易把交易思想转化为可计算、可回测、可重复执行的规则。相比手工交易，它的优势主要包括：执行纪律更强，减少情绪化追涨杀跌；可以快速处理大量股票、行情和财务数据；策略可以通过历史数据回测，提前评估收益、回撤和风险；交易信号和下单过程可以自动化，提高速度和一致性；便于持续优化和风险控制，例如设置止损、仓位限制和组合分散。</p>
+
     <h2>2. 基本概念解释</h2>
     <div class="grid">
       <div class="card"><h3>K 线</h3><p>K 线用开盘价、最高价、最低价、收盘价描述一个交易周期的价格变化，常用于观察趋势、波动和多空力量。</p></div>
       <div class="card"><h3>基本面</h3><p>基本面关注公司盈利、资产负债、行业景气、宏观经济、政策等影响股票长期价值的因素。</p></div>
       <div class="card"><h3>技术面</h3><p>技术面主要研究价格、成交量和技术指标，试图从市场行为中判断趋势、支撑阻力和买卖时机。</p></div>
     </div>
-    <h2>3. Python 获取过去一年交易数据、画收盘价曲线并保存 CSV</h2>
-    <p>静态网页不能直接安全调用 Tushare token。请在本地设置环境变量 `TUSHARE_TOKEN`，再运行下列代码或 `notebooks/task1.ipynb`。</p>
+
+    <h2>3. 网页获取真实 Tushare 日线数据</h2>
+    <p>MCP 是 Codex/本机代理使用的工具协议，GitHub Pages 中的浏览器页面不能直接调用 MCP。下面改为直接请求 Tushare HTTP API；如果浏览器因 CORS 拦截，请使用下方 Python 代码或 `notebooks/task1.ipynb` 获取真实数据。</p>
+    <div class="panel soft">
+      <div class="form-row">
+        <label>股票代码<input id="stockInput" value="000001.SZ"></label>
+        <label>Tushare Token<input id="tokenInput" type="password" placeholder="只在当前浏览器中使用，不写入仓库"></label>
+        <button id="fetchTushare">获取真实数据</button>
+        <button id="downloadRealCsv" class="secondary">下载 CSV</button>
+      </div>
+      <p id="fetchStatus" class="note">尚未请求数据。</p>
+    </div>
+    <div class="chart-shell"><canvas id="closeChart"></canvas></div>
+    <textarea id="csvPreview" readonly placeholder="真实 Tushare 数据会显示在这里。"></textarea>
+
+    <h2>4. Python 获取过去一年交易数据、画收盘价曲线并保存 CSV</h2>
     <div class="code-wrap">
       <div class="code-head"><span>task1 Python 代码</span><button data-copy="task1Code">复制代码</button></div>
       <pre><code id="task1Code">import os
@@ -55,11 +70,6 @@ plt.legend()
 plt.grid(True)
 plt.show()</code></pre>
     </div>
-    <h2>网页演示</h2>
-    <p>下方使用模拟数据演示“收盘价曲线”和“导出 CSV”的效果。</p>
-    <div class="chart-shell"><canvas id="closeChart"></canvas></div>
-    <div class="actions"><button id="downloadDemoCsv">下载模拟 CSV</button></div>
-    <textarea id="csvPreview" readonly></textarea>
   </main>
   <script src="script.js"></script>
 </body>
