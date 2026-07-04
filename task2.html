@@ -71,6 +71,19 @@ plt.show()</code></pre>
 
     <h2>4. 扩展指标：OBV 能量潮</h2>
     <p>OBV 根据价格涨跌方向累计成交量：收盘价上涨则加成交量，下跌则减成交量，持平则不变。它常用于观察成交量是否支持价格趋势。</p>
+    <h2>5. 本次 Python 运行结果</h2>
+    <p>以下图形和统计值由真实 Tushare CSV 计算后生成，并随页面部署。</p>
+    <div class="panel">
+      <table>
+        <tr><th>股票代码</th><td id="summaryCode">加载中</td><th>数据行数</th><td id="summaryRows">加载中</td></tr>
+        <tr><th>收盘均值</th><td id="summaryMean">加载中</td><th>收盘标准差</th><td id="summaryStd">加载中</td></tr>
+        <tr><th>最新 RSI</th><td id="summaryRsi">加载中</td><th>最新 MACD</th><td id="summaryMacd">加载中</td></tr>
+      </table>
+    </div>
+    <div class="chart-shell"><img class="result-img" src="data/rsi.svg" alt="RSI 运行结果"></div>
+    <div class="chart-shell"><img class="result-img" src="data/macd.svg" alt="MACD 运行结果"></div>
+    <div class="chart-shell"><img class="result-img" src="data/boll.svg" alt="布林带运行结果"></div>
+    <div class="chart-shell"><img class="result-img" src="data/obv.svg" alt="OBV 运行结果"></div>
     <div class="chart-shell"><canvas id="rsiChart"></canvas></div>
     <div class="chart-shell"><canvas id="macdChart"></canvas></div>
     <div class="chart-shell"><canvas id="bollChart"></canvas></div>

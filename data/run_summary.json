@@ -1,0 +1,20 @@
+{
+  "generated_at": "2026-07-04T16:03:39.202Z",
+  "ts_code": "000001.SZ",
+  "rows": 242,
+  "start_date": 20250704,
+  "end_date": 20260703,
+  "latest_close": 10.29,
+  "close_min": 10.05,
+  "close_max": 13.18,
+  "close_mean": 11.423636363636366,
+  "close_std": 0.5803005775721567,
+  "latest_rsi": 24.043715846994516,
+  "latest_dif": -0.21193914826842253,
+  "latest_dea": -0.16358548440206652,
+  "latest_macd": -0.09670732773271201,
+  "latest_boll_upper": 11.49712359299675,
+  "latest_boll_mid": 10.691999999999998,
+  "latest_boll_lower": 9.886876407003246,
+  "latest_obv": -23280397.289999995
+}

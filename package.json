@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "build:results": "node scripts/build-results.mjs",
     "fetch:data": "node scripts/fetch-tushare.mjs",
     "test": "node tests/smoke.mjs"
   }

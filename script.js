@@ -206,6 +206,26 @@ async function initTask1RealData() {
   }
 }
 
+async function loadRunSummary() {
+  const response = await fetch("data/run_summary.json", { cache: "no-store" });
+  if (!response.ok) return;
+  const summary = await response.json();
+  const set = (id, value) => {
+    const node = document.getElementById(id);
+    if (node) node.textContent = value;
+  };
+  const fixed = (value, digits = 2) => Number.isFinite(Number(value)) ? Number(value).toFixed(digits) : "";
+  set("summaryCode", summary.ts_code);
+  set("summaryRows", summary.rows);
+  set("summaryStart", summary.start_date);
+  set("summaryEnd", summary.end_date);
+  set("summaryClose", fixed(summary.latest_close));
+  set("summaryMean", fixed(summary.close_mean));
+  set("summaryStd", fixed(summary.close_std));
+  set("summaryRsi", fixed(summary.latest_rsi));
+  set("summaryMacd", fixed(summary.latest_macd, 4));
+}
+
 function diagnose(rows) {
   const closes = rows.map((row) => Number(row.close)).filter(Number.isFinite);
   return {
@@ -271,6 +291,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   document.getElementById("fetchTushare")?.addEventListener("click", fetchTushareDaily);
   initTask1RealData();
+  loadRunSummary();
   loadDefaultCsv().then((csv) => {
     if (document.getElementById("diagnosis")) analyzeRows(parseCsv(csv));
   }).catch(() => {});

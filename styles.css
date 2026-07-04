@@ -240,6 +240,12 @@ canvas {
   display: block;
 }
 
+.result-img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
 .form-row {
   display: flex;
   gap: 10px;

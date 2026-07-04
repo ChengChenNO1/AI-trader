@@ -39,7 +39,18 @@
     <div class="chart-shell"><canvas id="closeChart"></canvas></div>
     <textarea id="csvPreview" readonly placeholder="真实 Tushare 数据会显示在这里。"></textarea>
 
-    <h2>4. Python 获取过去一年交易数据、画收盘价曲线并保存 CSV</h2>
+    <h2>4. 本次 Python 运行结果</h2>
+    <p>以下结果由本地 `.env` 中的 Tushare token 拉取真实数据后生成，并随 GitHub Pages 一起发布。</p>
+    <div class="panel">
+      <table>
+        <tr><th>股票代码</th><td id="summaryCode">加载中</td><th>数据行数</th><td id="summaryRows">加载中</td></tr>
+        <tr><th>开始日期</th><td id="summaryStart">加载中</td><th>结束日期</th><td id="summaryEnd">加载中</td></tr>
+        <tr><th>最新收盘价</th><td id="summaryClose">加载中</td><th>CSV 文件</th><td><a href="data/task1_daily_data.csv">data/task1_daily_data.csv</a></td></tr>
+      </table>
+    </div>
+    <div class="chart-shell"><img class="result-img" src="data/close.svg" alt="每日收盘价运行结果"></div>
+
+    <h2>5. Python 获取过去一年交易数据、画收盘价曲线并保存 CSV</h2>
     <div class="code-wrap">
       <div class="code-head"><span>task1 Python 代码</span><button data-copy="task1Code">复制代码</button></div>
       <pre><code id="task1Code">import os
