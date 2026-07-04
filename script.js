@@ -228,24 +228,187 @@ async function loadRunSummary() {
 
 function diagnose(rows) {
   const closes = rows.map((row) => Number(row.close)).filter(Number.isFinite);
+  const opens = rows.map((row) => Number(row.open)).filter(Number.isFinite);
+  const highs = rows.map((row) => Number(row.high)).filter(Number.isFinite);
+  const lows = rows.map((row) => Number(row.low)).filter(Number.isFinite);
+  const vols = rows.map((row) => Number(row.vol)).filter(Number.isFinite);
+  
+  // 计算涨跌幅
+  const priceChanges = [];
+  for (let i = 1; i < closes.length; i++) {
+    priceChanges.push((closes[i] - closes[i-1]) / closes[i-1] * 100);
+  }
+  
   return {
     rows: rows.length,
     missingClose: rows.length - closes.length,
-    min: Math.min(...closes),
-    max: Math.max(...closes),
-    mean: mean(closes),
-    std: std(closes)
+    closeMin: Math.min(...closes),
+    closeMax: Math.max(...closes),
+    closeMean: mean(closes),
+    closeStd: std(closes),
+    openMean: mean(opens),
+    highMean: mean(highs),
+    lowMean: mean(lows),
+    volMean: mean(vols),
+    priceChangeMean: priceChanges.length > 0 ? mean(priceChanges) : 0,
+    priceChangeStd: priceChanges.length > 0 ? std(priceChanges) : 0,
+    priceChangeMax: priceChanges.length > 0 ? Math.max(...priceChanges) : 0,
+    priceChangeMin: priceChanges.length > 0 ? Math.min(...priceChanges) : 0
   };
+}
+
+function renderAllDiagnosisResults(rows) {
+  // 1. 加载数据结果
+  const loadDataTarget = document.getElementById("loadDataResultContent");
+  if (loadDataTarget) {
+    let headStr = "数据前5行：\n";
+    const headers = Object.keys(rows[0]);
+    headStr += headers.join("\t") + "\n";
+    for (let i = 0; i < Math.min(5, rows.length); i++) {
+      const row = rows[i];
+      headStr += headers.map(h => row[h]).join("\t") + "\n";
+    }
+    loadDataTarget.textContent = headStr;
+  }
+  
+  // 2. 缺失值检查结果
+  const missingTarget = document.getElementById("missingResultContent");
+  if (missingTarget) {
+    const headers = Object.keys(rows[0]);
+    let missingStr = "各字段缺失值数量：\n";
+    headers.forEach(header => {
+      let missingCount = 0;
+      rows.forEach(row => {
+        if (row[header] === undefined || row[header] === null || row[header] === "") {
+          missingCount++;
+        }
+      });
+      missingStr += `${header}: ${missingCount}\n`;
+    });
+    missingTarget.textContent = missingStr;
+  }
+  
+  // 3. 数据基本信息
+  const infoTarget = document.getElementById("infoResultContent");
+  if (infoTarget) {
+    const dates = rows.map(r => String(r.trade_date)).sort();
+    const minDate = dates[0];
+    const maxDate = dates[dates.length - 1];
+    const date1 = new Date(minDate.substring(0, 4), parseInt(minDate.substring(4, 6)) - 1, minDate.substring(6, 8));
+    const date2 = new Date(maxDate.substring(0, 4), parseInt(maxDate.substring(4, 6)) - 1, maxDate.substring(6, 8));
+    const daysSpan = Math.floor((date2 - date1) / (1000 * 60 * 60 * 24));
+    
+    let infoStr = "";
+    infoStr += `数据行数：${rows.length}\n`;
+    infoStr += `数据列数：${Object.keys(rows[0]).length}\n`;
+    infoStr += `起始日期：${minDate}\n`;
+    infoStr += `结束日期：${maxDate}\n`;
+    infoStr += `时间跨度：${daysSpan} 天`;
+    infoTarget.textContent = infoStr;
+  }
+  
+  // 4. 描述性统计量
+  const describeTarget = document.getElementById("describeResultContent");
+  if (describeTarget) {
+    const numericFields = ['open', 'high', 'low', 'close', 'vol'];
+    let describeStr = "描述性统计量：\n";
+    describeStr += "\t";
+    numericFields.forEach(field => describeStr += `${field}\t`);
+    describeStr += "\n";
+    
+    const stats = {};
+    numericFields.forEach(field => {
+      const values = rows.map(r => Number(r[field])).filter(v => !isNaN(v));
+      if (values.length > 0) {
+        stats[field] = {
+          count: values.length,
+          mean: mean(values),
+          std: std(values),
+          min: Math.min(...values),
+          max: Math.max(...values),
+          p25: percentile(values, 25),
+          p50: percentile(values, 50),
+          p75: percentile(values, 75)
+        };
+      }
+    });
+    
+    describeStr += `count\t`;
+    numericFields.forEach(field => describeStr += `${stats[field]?.count || 0}\t`);
+    describeStr += "\n";
+    describeStr += `mean\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.mean || 0).toFixed(4)}\t`);
+    describeStr += "\n";
+    describeStr += `std\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.std || 0).toFixed(4)}\t`);
+    describeStr += "\n";
+    describeStr += `min\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.min || 0).toFixed(4)}\t`);
+    describeStr += "\n";
+    describeStr += `25%\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.p25 || 0).toFixed(4)}\t`);
+    describeStr += "\n";
+    describeStr += `50%\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.p50 || 0).toFixed(4)}\t`);
+    describeStr += "\n";
+    describeStr += `75%\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.p75 || 0).toFixed(4)}\t`);
+    describeStr += "\n";
+    describeStr += `max\t`;
+    numericFields.forEach(field => describeStr += `${(stats[field]?.max || 0).toFixed(4)}\t`);
+    
+    describeTarget.textContent = describeStr;
+  }
+  
+  // 5. 价格涨跌幅分析
+  const changeTarget = document.getElementById("changeResultContent");
+  if (changeTarget) {
+    const closes = rows.map(r => Number(r.close)).filter(v => !isNaN(v));
+    const priceChanges = [];
+    for (let i = 1; i < closes.length; i++) {
+      priceChanges.push((closes[i] - closes[i-1]) / closes[i-1] * 100);
+    }
+    
+    let changeStr = "涨跌幅统计：\n";
+    if (priceChanges.length > 0) {
+      changeStr += `平均日涨跌幅：${mean(priceChanges).toFixed(4)}%\n`;
+      changeStr += `涨跌幅标准差：${std(priceChanges).toFixed(4)}%\n`;
+      changeStr += `最大日涨幅：${Math.max(...priceChanges).toFixed(4)}%\n`;
+      changeStr += `最大日跌幅：${Math.min(...priceChanges).toFixed(4)}%`;
+    } else {
+      changeStr += "数据不足，无法计算";
+    }
+    changeTarget.textContent = changeStr;
+  }
+}
+
+function percentile(values, p) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = (p / 100) * (sorted.length - 1);
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  const weight = index - lower;
+  if (upper >= sorted.length) return sorted[sorted.length - 1];
+  if (lower < 0) return sorted[0];
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
 }
 
 function renderDiagnosis(stats) {
   const target = document.getElementById("diagnosis");
   if (!target) return;
   target.innerHTML = `
+    <h3 style="font-size:12pt;margin-top:0;margin-bottom:10px;">数据诊断报告</h3>
     <table>
-      <tr><th>行数</th><td>${stats.rows}</td><th>收盘价缺失</th><td>${stats.missingClose}</td></tr>
-      <tr><th>最小值</th><td>${stats.min.toFixed(4)}</td><th>最大值</th><td>${stats.max.toFixed(4)}</td></tr>
-      <tr><th>均值</th><td>${stats.mean.toFixed(4)}</td><th>标准差</th><td>${stats.std.toFixed(4)}</td></tr>
+      <tr><th colspan="4" style="background:#e8f0fe;">基本信息</th></tr>
+      <tr><th>数据行数</th><td>${stats.rows}</td><th>收盘价缺失</th><td>${stats.missingClose}</td></tr>
+      <tr><th colspan="4" style="background:#e8f0fe;">价格统计</th></tr>
+      <tr><th>收盘最小值</th><td>${stats.closeMin.toFixed(4)}</td><th>收盘最大值</th><td>${stats.closeMax.toFixed(4)}</td></tr>
+      <tr><th>收盘均值</th><td>${stats.closeMean.toFixed(4)}</td><th>收盘标准差</th><td>${stats.closeStd.toFixed(4)}</td></tr>
+      <tr><th>开盘均值</th><td>${stats.openMean.toFixed(4)}</td><th>最高均值</th><td>${stats.highMean.toFixed(4)}</td></tr>
+      <tr><th>最低均值</th><td>${stats.lowMean.toFixed(4)}</td><th>成交量均值</th><td>${stats.volMean.toFixed(2)}</td></tr>
+      <tr><th colspan="4" style="background:#e8f0fe;">涨跌幅统计</th></tr>
+      <tr><th>平均涨跌幅</th><td>${stats.priceChangeMean.toFixed(4)}%</td><th>涨跌幅标准差</th><td>${stats.priceChangeStd.toFixed(4)}%</td></tr>
+      <tr><th>最大涨幅</th><td>${stats.priceChangeMax.toFixed(4)}%</td><th>最大跌幅</th><td>${stats.priceChangeMin.toFixed(4)}%</td></tr>
     </table>`;
 }
 
@@ -270,6 +433,7 @@ function analyzeRows(rows) {
     else obv.push(obv[i - 1] + (close > closes[i - 1] ? volumes[i] : close < closes[i - 1] ? -volumes[i] : 0));
   });
   renderDiagnosis(diagnose(rows));
+  renderAllDiagnosisResults(rows);
   drawLineChart("rsiChart", [{ values: rsi14, color: "#1266d6" }], { title: "RSI(14)" });
   drawLineChart("macdChart", [
     { values: dif, color: "#1266d6" },
@@ -292,9 +456,23 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("fetchTushare")?.addEventListener("click", fetchTushareDaily);
   initTask1RealData();
   loadRunSummary();
+  
+  // Task 2 加载诊断按钮
+  document.getElementById("loadDiagnosis")?.addEventListener("click", async () => {
+    try {
+      const csv = await loadDefaultCsv();
+      analyzeRows(parseCsv(csv));
+    } catch (error) {
+      const target = document.getElementById("diagnosis");
+      if (target) target.innerHTML = `<p style="color:#d65a12;">加载失败：${error.message}</p>`;
+    }
+  });
+  
+  // Task 2 默认加载
   loadDefaultCsv().then((csv) => {
     if (document.getElementById("diagnosis")) analyzeRows(parseCsv(csv));
   }).catch(() => {});
+  
   document.getElementById("csvInput")?.addEventListener("change", async (event) => {
     const selected = event.target.files[0];
     if (!selected) return;

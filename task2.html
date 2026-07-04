@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Task 2</title>
+  <title>Task 2：数据诊断与技术指标</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -15,62 +15,243 @@
   </header>
   <main class="page">
     <h1>Task 2：数据诊断与技术指标</h1>
+    
     <h2>1. 数据基础诊断分析</h2>
-    <p>本页面默认读取 Task 1 生成的真实 CSV：`data/task1_daily_data.csv`。也可以上传其他真实 CSV。基础诊断包括检查缺失值、数据类型、重复日期、极端值，并计算均值、标准差、最小值、最大值等描述性统计量。</p>
+    <p>本页面默认读取 Task 1 生成的真实 CSV：data/task1_daily_data.csv。也可以上传其他真实 CSV。对数据进行全面的诊断分析，包括以下内容：</p>
     <div class="form-row"><label>上传真实 CSV<input id="csvInput" type="file" accept=".csv"></label></div>
-    <div id="diagnosis" class="panel"><p>尚未上传 CSV。</p></div>
+    <div id="diagnosis" class="panel"><p>点击下方按钮加载并诊断数据。</p><button id="loadDiagnosis">加载并诊断数据</button></div>
+    
+    <h3>1.1 加载和检查数据</h3>
+    <div class="code-wrap">
+      <div class="code-head"><span>代码：加载数据</span><button data-copy="loadDataCode">复制代码</button></div>
+      <pre><code id="loadDataCode">import pandas as pd
 
+# 加载数据
+df = pd.read_csv('task1_daily_data.csv')
+df = df.sort_values('trade_date').reset_index(drop=True)
+
+print('数据前5行：')
+print(df.head())</code></pre>
+    </div>
+    <div id="loadDataResult" class="panel soft" style="margin-top: 8px;">
+      <p><strong>运行结果：</strong></p>
+      <pre id="loadDataResultContent" style="font-family: Consolas, 'Courier New', monospace; font-size: 9pt; background: #f8f9fa; padding: 12px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">数据加载中...</pre>
+    </div>
+    
+    <h3>1.2 检查缺失值</h3>
+    <div class="code-wrap">
+      <div class="code-head"><span>代码：缺失值检查</span><button data-copy="missingCode">复制代码</button></div>
+      <pre><code id="missingCode">print('各字段缺失值数量：')
+print(df.isna().sum())</code></pre>
+    </div>
+    <div id="missingResult" class="panel soft" style="margin-top: 8px;">
+      <p><strong>运行结果：</strong></p>
+      <pre id="missingResultContent" style="font-family: Consolas, 'Courier New', monospace; font-size: 9pt; background: #f8f9fa; padding: 12px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">结果加载中...</pre>
+    </div>
+    
+    <h3>1.3 数据基本信息</h3>
+    <div class="code-wrap">
+      <div class="code-head"><span>代码：数据基本信息</span><button data-copy="infoCode">复制代码</button></div>
+      <pre><code id="infoCode">print(f'数据行数：{len(df)}')
+print(f'数据列数：{len(df.columns)}')
+print(f'起始日期：{df["trade_date"].min()}')
+print(f'结束日期：{df["trade_date"].max()}')
+print(f'时间跨度：{(pd.to_datetime(df["trade_date"]).max() - pd.to_datetime(df["trade_date"]).min()).days} 天')</code></pre>
+    </div>
+    <div id="infoResult" class="panel soft" style="margin-top: 8px;">
+      <p><strong>运行结果：</strong></p>
+      <pre id="infoResultContent" style="font-family: Consolas, 'Courier New', monospace; font-size: 9pt; background: #f8f9fa; padding: 12px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">结果加载中...</pre>
+    </div>
+    
+    <h3>1.4 描述性统计量</h3>
+    <div class="code-wrap">
+      <div class="code-head"><span>代码：描述性统计</span><button data-copy="describeCode">复制代码</button></div>
+      <pre><code id="describeCode">print('描述性统计量：')
+print(df.describe())</code></pre>
+    </div>
+    <div id="describeResult" class="panel soft" style="margin-top: 8px;">
+      <p><strong>运行结果：</strong></p>
+      <pre id="describeResultContent" style="font-family: Consolas, 'Courier New', monospace; font-size: 9pt; background: #f8f9fa; padding: 12px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">结果加载中...</pre>
+    </div>
+    
+    <h3>1.5 价格涨跌幅分析</h3>
+    <div class="code-wrap">
+      <div class="code-head"><span>代码：涨跌幅分析</span><button data-copy="changeCode">复制代码</button></div>
+      <pre><code id="changeCode">df['price_change'] = df['close'].pct_change() * 100
+
+print('涨跌幅统计：')
+print(f'平均日涨跌幅：{df["price_change"].mean():.4f}%')
+print(f'涨跌幅标准差：{df["price_change"].std():.4f}%')
+print(f'最大日涨幅：{df["price_change"].max():.4f}%')
+print(f'最大日跌幅：{df["price_change"].min():.4f}%')</code></pre>
+    </div>
+    <div id="changeResult" class="panel soft" style="margin-top: 8px;">
+      <p><strong>运行结果：</strong></p>
+      <pre id="changeResultContent" style="font-family: Consolas, 'Courier New', monospace; font-size: 9pt; background: #f8f9fa; padding: 12px; border-radius: 4px; overflow-x: auto; white-space: pre-wrap;">结果加载中...</pre>
+    </div>
+    
     <h2>2. RSI、MACD、布林带的计算方法和作用</h2>
-    <table>
-      <tr><th>指标</th><th>计算方法</th><th>作用</th></tr>
-      <tr><td>RSI</td><td>RSI = 100 - 100 / (1 + RS)，RS 为 N 日平均上涨幅度除以平均下跌幅度，常用 N=14。</td><td>衡量超买超卖。RSI 较高可能偏超买，较低可能偏超卖。</td></tr>
-      <tr><td>MACD</td><td>DIF = EMA(12) - EMA(26)，DEA = EMA(DIF, 9)，MACD = 2 × (DIF - DEA)。</td><td>观察趋势强弱和动量变化，常用金叉、死叉辅助判断。</td></tr>
-      <tr><td>布林带</td><td>中轨 = N 日均线，上轨 = 中轨 + 2 × 标准差，下轨 = 中轨 - 2 × 标准差，常用 N=20。</td><td>判断波动区间、压力支撑和价格偏离程度。</td></tr>
-    </table>
-
+    
+    <h3>2.1 RSI（相对强弱指标）</h3>
+    <div class="panel">
+      <p><strong>定义：</strong>RSI（Relative Strength Index，相对强弱指标）是由 Welles Wilder 于 1978 年提出的动量指标，用于衡量价格变动的速度和变化。</p>
+      <p><strong>计算方法：</strong></p>
+      <ol>
+        <li>计算每日价格变化：Δ = 当日收盘价 - 前一日收盘价</li>
+        <li>计算平均涨幅（Gain）和平均跌幅（Loss）：使用 N 日（通常为 14 日）滚动平均</li>
+        <li>计算相对强弱 RS = 平均涨幅 / 平均跌幅</li>
+        <li>计算 RSI = 100 - 100 / (1 + RS)</li>
+      </ol>
+      <p><strong>作用：</strong></p>
+      <ul>
+        <li>超买超卖信号：RSI &gt; 70 视为超买，可能回调；RSI &lt; 30 视为超卖，可能反弹</li>
+        <li>背离信号：价格创新高但 RSI 未创新高（顶背离），或价格创新低但 RSI 未创新低（底背离）</li>
+        <li>趋势判断：RSI 在 50 以上表明上涨趋势，50 以下表明下跌趋势</li>
+      </ul>
+    </div>
+    
+    <h3>2.2 MACD（指数平滑异同移动平均线）</h3>
+    <div class="panel">
+      <p><strong>定义：</strong>MACD（Moving Average Convergence Divergence）是由 Gerald Appel 于 1979 年提出的趋势跟踪指标，通过计算两条移动平均线的差离值来判断趋势。</p>
+      <p><strong>计算方法：</strong></p>
+      <ol>
+        <li>计算短期 EMA（通常为 12 日指数移动平均）</li>
+        <li>计算长期 EMA（通常为 26 日指数移动平均）</li>
+        <li>计算 DIF（差离值）= EMA(12) - EMA(26)</li>
+        <li>计算 DEA（信号线）= EMA(DIF, 9)，即 DIF 的 9 日指数移动平均</li>
+        <li>计算 MACD 柱状图 = 2 × (DIF - DEA)</li>
+      </ol>
+      <p><strong>作用：</strong></p>
+      <ul>
+        <li>金叉信号：DIF 从下向上突破 DEA，为买入信号</li>
+        <li>死叉信号：DIF 从上向下突破 DEA，为卖出信号</li>
+        <li>趋势判断：DIF 和 DEA 均在零轴上方，表明上涨趋势；均在零轴下方，表明下跌趋势</li>
+        <li>柱状图变化：柱状图由负转正或由正转负，表明动量的变化</li>
+      </ul>
+    </div>
+    
+    <h3>2.3 布林带（Bollinger Bands）</h3>
+    <div class="panel">
+      <p><strong>定义：</strong>布林带由 John Bollinger 于 1980 年代提出，是一种基于统计标准差的 volatility 指标，由三条线组成：中轨、上轨和下轨。</p>
+      <p><strong>计算方法：</strong></p>
+      <ol>
+        <li>计算中轨：N 日简单移动平均线（通常 N = 20）</li>
+        <li>计算标准差：N 日收盘价的标准差</li>
+        <li>计算上轨 = 中轨 + 2 × 标准差</li>
+        <li>计算下轨 = 中轨 - 2 × 标准差</li>
+      </ol>
+      <p><strong>作用：</strong></p>
+      <ul>
+        <li>波动区间：布林带宽度表示市场波动大小，带宽收窄表示波动减小，带宽扩大表示波动增大</li>
+        <li>支撑阻力：上轨通常作为阻力位，下轨通常作为支撑位</li>
+        <li>超买超卖：价格触及上轨可能超买，触及下轨可能超卖</li>
+        <li>趋势判断：价格在中轨上方运行表明上涨趋势，在中轨下方运行表明下跌趋势</li>
+      </ul>
+    </div>
+    
     <h2>3. Python 加载数据、计算指标并可视化</h2>
     <div class="code-wrap">
       <div class="code-head"><span>task2 Python 代码</span><button data-copy="task2Code">复制代码</button></div>
       <pre><code id="task2Code">import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime
 
-df = pd.read_csv("task1_daily_data.csv")
-df = df.sort_values("trade_date")
-close = df["close"]
+# 设置中文字体
+plt.rcParams['font.sans-serif'] = ['SimSun']
+plt.rcParams['axes.unicode_minus'] = False
 
+# 加载数据
+df = pd.read_csv('task1_daily_data.csv')
+df = df.sort_values('trade_date').reset_index(drop=True)
+
+# 将交易日期转换为日期格式
+df['trade_date'] = pd.to_datetime(df['trade_date'], format='%Y%m%d')
+
+print('='*80)
+print('数据基础诊断分析')
+print('='*80)
+
+# 1. 检查缺失值
+print('\n【1. 缺失值检查】')
+print(df.isna().sum())
+
+# 2. 数据基本信息
+print('\n【2. 数据基本信息】')
+print(f'数据行数：{len(df)}')
+print(f'数据列数：{len(df.columns)}')
+print(f'起始日期：{df["trade_date"].min()}')
+print(f'结束日期：{df["trade_date"].max()}')
+print(f'时间跨度：{(df["trade_date"].max() - df["trade_date"].min()).days} 天')
+
+# 3. 描述性统计量
+print('\n【3. 描述性统计量】')
+print(df.describe())
+
+# 4. 价格涨跌幅分析
+df['price_change'] = df['close'].pct_change() * 100
+print('\n【4. 价格涨跌幅统计】')
+print(f'平均日涨跌幅：{df["price_change"].mean():.4f}%')
+print(f'涨跌幅标准差：{df["price_change"].std():.4f}%')
+print(f'最大日涨幅：{df["price_change"].max():.4f}%')
+print(f'最大日跌幅：{df["price_change"].min():.4f}%')
+
+# 计算技术指标
+close = df['close']
+
+# 计算 RSI（14日）
 delta = close.diff()
 gain = delta.clip(lower=0).rolling(14).mean()
 loss = (-delta.clip(upper=0)).rolling(14).mean()
-df["RSI"] = 100 - 100 / (1 + gain / loss)
+df['RSI'] = 100 - 100 / (1 + gain / loss)
 
+# 计算 MACD
 ema12 = close.ewm(span=12, adjust=False).mean()
 ema26 = close.ewm(span=26, adjust=False).mean()
-df["DIF"] = ema12 - ema26
-df["DEA"] = df["DIF"].ewm(span=9, adjust=False).mean()
-df["MACD"] = 2 * (df["DIF"] - df["DEA"])
+df['DIF'] = ema12 - ema26
+df['DEA'] = df['DIF'].ewm(span=9, adjust=False).mean()
+df['MACD'] = 2 * (df['DIF'] - df['DEA'])
 
-df["BOLL_MID"] = close.rolling(20).mean()
-df["BOLL_STD"] = close.rolling(20).std()
-df["BOLL_UPPER"] = df["BOLL_MID"] + 2 * df["BOLL_STD"]
-df["BOLL_LOWER"] = df["BOLL_MID"] - 2 * df["BOLL_STD"]
+# 计算布林带（20日，2倍标准差）
+df['BOLL_MID'] = close.rolling(20).mean()
+df['BOLL_STD'] = close.rolling(20).std()
+df['BOLL_UPPER'] = df['BOLL_MID'] + 2 * df['BOLL_STD']
+df['BOLL_LOWER'] = df['BOLL_MID'] - 2 * df['BOLL_STD']
 
+# 计算 OBV
 direction = close.diff().apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
-df["OBV"] = (direction * df["vol"]).fillna(0).cumsum()
+df['OBV'] = (direction * df['vol']).fillna(0).cumsum()
 
 print(df.isna().sum())
 print(df.describe())
-df[["close", "BOLL_UPPER", "BOLL_MID", "BOLL_LOWER"]].plot(figsize=(12, 5), title="Bollinger Bands")
+df[['close', 'BOLL_UPPER', 'BOLL_MID', 'BOLL_LOWER']].plot(figsize=(12, 5), title='布林带')
 plt.show()
-df[["RSI"]].plot(figsize=(12, 3), title="RSI")
+df[['RSI']].plot(figsize=(12, 3), title='RSI')
 plt.show()
-df[["DIF", "DEA", "MACD"]].plot(figsize=(12, 4), title="MACD")
+df[['DIF', 'DEA', 'MACD']].plot(figsize=(12, 4), title='MACD')
 plt.show()
-df[["OBV"]].plot(figsize=(12, 3), title="OBV")
+df[['OBV']].plot(figsize=(12, 3), title='OBV 能量潮')
 plt.show()</code></pre>
     </div>
-
-    <h2>4. 扩展指标：OBV 能量潮</h2>
-    <p>OBV 根据价格涨跌方向累计成交量：收盘价上涨则加成交量，下跌则减成交量，持平则不变。它常用于观察成交量是否支持价格趋势。</p>
+    
+    <h2>4. 扩展指标：OBV（能量潮）</h2>
+    <div class="panel">
+      <p><strong>定义：</strong>OBV（On Balance Volume，能量潮）是由 Joseph Granville 于 1963 年提出的技术分析指标，将成交量与价格变动相结合，用于衡量资金流向。</p>
+      <p><strong>计算方法：</strong></p>
+      <ol>
+        <li>当日收盘价 &gt; 前一日收盘价：OBV = 前一日 OBV + 当日成交量</li>
+        <li>当日收盘价 &lt; 前一日收盘价：OBV = 前一日 OBV - 当日成交量</li>
+        <li>当日收盘价 = 前一日收盘价：OBV = 前一日 OBV</li>
+      </ol>
+      <p><strong>作用：</strong></p>
+      <ul>
+        <li>确认趋势：OBV 与价格同向变动时，趋势得到确认</li>
+        <li>背离信号：价格创新高但 OBV 未创新高（顶背离），或价格创新低但 OBV 未创新低（底背离），预示趋势可能反转</li>
+        <li>资金流向：OBV 上升表明资金流入，OBV 下降表明资金流出</li>
+        <li>突破确认：价格突破时 OBV 也同步突破，确认突破有效</li>
+      </ul>
+    </div>
+    
     <h2>5. 本次 Python 运行结果</h2>
     <p>以下图形和统计值由真实 Tushare CSV 计算后生成，并随页面部署。</p>
     <div class="panel">
@@ -80,14 +261,70 @@ plt.show()</code></pre>
         <tr><th>最新 RSI</th><td id="summaryRsi">加载中</td><th>最新 MACD</th><td id="summaryMacd">加载中</td></tr>
       </table>
     </div>
-    <div class="chart-shell"><img class="result-img" src="data/rsi.svg" alt="RSI 运行结果"></div>
-    <div class="chart-shell"><img class="result-img" src="data/macd.svg" alt="MACD 运行结果"></div>
-    <div class="chart-shell"><img class="result-img" src="data/boll.svg" alt="布林带运行结果"></div>
-    <div class="chart-shell"><img class="result-img" src="data/obv.svg" alt="OBV 运行结果"></div>
-    <div class="chart-shell"><canvas id="rsiChart"></canvas></div>
-    <div class="chart-shell"><canvas id="macdChart"></canvas></div>
-    <div class="chart-shell"><canvas id="bollChart"></canvas></div>
-    <div class="chart-shell"><canvas id="obvChart"></canvas></div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 3  平安银行（000001.SZ）14日 RSI 相对强弱指标</div>
+      <img class="result-img" src="data/rsi.svg" alt="RSI 运行结果">
+      <div class="chart-desc">
+        <strong>解读：</strong>RSI 指标用于衡量价格动量的强弱。图中红色虚线为超买线（70），绿色虚线为超卖线（30）。当 RSI 超过 70 时，表明股票可能超买，存在回调风险；当 RSI 低于 30 时，表明股票可能超卖，存在反弹机会。RSI 在 50 上方运行表明整体趋势偏强，在 50 下方运行表明整体趋势偏弱。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 4  平安银行（000001.SZ）MACD 指数平滑异同移动平均线</div>
+      <img class="result-img" src="data/macd.svg" alt="MACD 运行结果">
+      <div class="chart-desc">
+        <strong>解读：</strong>MACD 指标由 DIF（快线）、DEA（慢线）和柱状图组成。当 DIF 从下方向上突破 DEA 时形成"金叉"，为买入信号；当 DIF 从上方向下突破 DEA 时形成"死叉"，为卖出信号。DIF 和 DEA 在零轴上方表明上涨趋势，在零轴下方表明下跌趋势。柱状图的正负和大小反映了动量的变化。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 5  平安银行（000001.SZ）布林带（20日，2倍标准差）</div>
+      <img class="result-img" src="data/boll.svg" alt="布林带运行结果">
+      <div class="chart-desc">
+        <strong>解读：</strong>布林带由上轨（红色）、中轨（蓝色）和下轨（绿色）组成。中轨为 20 日均线，上轨和下轨分别是中轨加减 2 倍标准差。价格触及上轨表明可能超买，触及下轨表明可能超卖。布林带带宽收窄表明市场波动性降低，往往预示着即将出现较大的行情突破；带宽扩大表明市场波动性增大。价格在中轨上方运行表明短期趋势偏强，在中轨下方运行表明短期趋势偏弱。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 6  平安银行（000001.SZ）OBV 能量潮指标</div>
+      <img class="result-img" src="data/obv.svg" alt="OBV 能量潮运行结果">
+      <div class="chart-desc">
+        <strong>解读：</strong>OBV 指标通过累加成交量来衡量资金流向。当股价上涨时，OBV 上升表明资金流入；当股价下跌时，OBV 下降表明资金流出。OBV 与价格同向变动时，趋势得到确认；若出现背离（价格创新高但 OBV 未创新高，或价格创新低但 OBV 未创新低），往往预示着趋势可能反转。OBV 的持续上升表明买盘力量强劲，持续下降表明卖盘力量强劲。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 7  平安银行（000001.SZ）实时计算 RSI 指标（Canvas 图）</div>
+      <canvas id="rsiChart"></canvas>
+      <div class="chart-desc">
+        <strong>解读：</strong>该 Canvas 图表由 JavaScript 实时计算并绘制 RSI 指标。RSI 曲线能够清晰地展示价格动量的变化，帮助判断当前市场处于超买还是超卖状态。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 8  平安银行（000001.SZ）实时计算 MACD 指标（Canvas 图）</div>
+      <canvas id="macdChart"></canvas>
+      <div class="chart-desc">
+        <strong>解读：</strong>该 Canvas 图表由 JavaScript 实时计算并绘制 MACD 指标。图中展示了 DIF、DEA 和柱状图三个组成部分，能够直观地观察到金叉、死叉和动量变化等信号。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 9  平安银行（000001.SZ）实时计算布林带（Canvas 图）</div>
+      <canvas id="bollChart"></canvas>
+      <div class="chart-desc">
+        <strong>解读：</strong>该 Canvas 图表由 JavaScript 实时计算并绘制布林带。可以清晰地观察到价格在布林带上下轨之间的波动，以及布林带带宽的变化，从而判断市场波动性和可能的突破机会。
+      </div>
+    </div>
+    
+    <div class="chart-shell">
+      <div class="chart-title">图 10  平安银行（000001.SZ）实时计算 OBV 指标（Canvas 图）</div>
+      <canvas id="obvChart"></canvas>
+      <div class="chart-desc">
+        <strong>解读：</strong>该 Canvas 图表由 JavaScript 实时计算并绘制 OBV 指标。OBV 的变化趋势能够反映资金的流入流出情况，帮助判断价格走势的可靠性。
+      </div>
+    </div>
   </main>
   <script src="script.js"></script>
 </body>

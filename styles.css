@@ -336,3 +336,77 @@ th {
     height: 230px;
   }
 }
+
+/* 打印样式 */
+@media print {
+  .site-header {
+    position: static;
+    border-bottom: 2px solid var(--line);
+  }
+
+  .nav-links a,
+  button,
+  .button,
+  #fetchTushare,
+  #downloadRealCsv,
+  #loadDiagnosis,
+  textarea,
+  input {
+    display: none !important;
+  }
+
+  .page {
+    padding: 20px 0;
+    width: 100%;
+  }
+
+  .chart-shell {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .result-img {
+    max-width: 100%;
+  }
+
+  canvas {
+    max-width: 100%;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    page-break-after: avoid;
+    break-after: avoid;
+  }
+
+  .panel {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .code-wrap {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+}
+
+/* 图表标题和解读样式 */
+.chart-title {
+  font-weight: 700;
+  font-size: 11pt;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+
+.chart-desc {
+  margin-top: 8px;
+  font-size: 10pt;
+  color: var(--muted);
+  text-align: justify;
+}

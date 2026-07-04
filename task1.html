@@ -36,7 +36,13 @@
       </div>
       <p id="fetchStatus" class="note">尚未请求数据。</p>
     </div>
-    <div class="chart-shell"><canvas id="closeChart"></canvas></div>
+    <div class="chart-shell">
+      <div class="chart-title">图 1  平安银行（000001.SZ）过去一年每日收盘价走势图</div>
+      <canvas id="closeChart"></canvas>
+      <div class="chart-desc">
+        <strong>解读：</strong>该图表展示了平安银行过去一年的每日收盘价变化。从图中可以观察到价格的整体趋势、波动区间和关键支撑与阻力水平。可以看出股价在一定区间内波动，有明显的上涨和下跌周期。
+      </div>
+    </div>
     <textarea id="csvPreview" readonly placeholder="真实 Tushare 数据会显示在这里。"></textarea>
 
     <h2>4. 本次 Python 运行结果</h2>
@@ -48,7 +54,13 @@
         <tr><th>最新收盘价</th><td id="summaryClose">加载中</td><th>CSV 文件</th><td><a href="data/task1_daily_data.csv">data/task1_daily_data.csv</a></td></tr>
       </table>
     </div>
-    <div class="chart-shell"><img class="result-img" src="data/close.svg" alt="每日收盘价运行结果"></div>
+    <div class="chart-shell">
+      <div class="chart-title">图 2  平安银行（000001.SZ）过去一年每日收盘价（SVG 图）</div>
+      <img class="result-img" src="data/close.svg" alt="每日收盘价运行结果">
+      <div class="chart-desc">
+        <strong>解读：</strong>该 SVG 图表由 Python 的 Matplotlib 库生成，精确记录了平安银行过去一年的每日收盘价变化。该图与图 1 数据来源相同，展示了股价的历史走势，便于观察长期趋势和短期波动。
+      </div>
+    </div>
 
     <h2>5. Python 获取过去一年交易数据、画收盘价曲线并保存 CSV</h2>
     <div class="code-wrap">
