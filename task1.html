@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task 1</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="brand" href="index.html">AI Trader</a>
+      <div class="nav-links"><a class="active" href="task1.html">Task 1</a><a href="task2.html">Task 2</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <h1>Task 1：量化交易基础与数据获取</h1>
+    <h2>1. 相较于传统手工操作交易的方法，量化交易有哪些优势？</h2>
+    <p>量化交易把交易思想转化为可计算、可回测、可重复执行的规则。相比手工交易，它的优势主要包括：第一，执行纪律更强，减少情绪化追涨杀跌；第二，可以快速处理大量股票、行情和财务数据；第三，策略可以通过历史数据回测，提前评估收益、回撤和风险；第四，交易信号和下单过程可以自动化，提高速度和一致性；第五，便于持续优化和风险控制，例如设置止损、仓位限制和组合分散。</p>
+    <h2>2. 基本概念解释</h2>
+    <div class="grid">
+      <div class="card"><h3>K 线</h3><p>K 线用开盘价、最高价、最低价、收盘价描述一个交易周期的价格变化，常用于观察趋势、波动和多空力量。</p></div>
+      <div class="card"><h3>基本面</h3><p>基本面关注公司盈利、资产负债、行业景气、宏观经济、政策等影响股票长期价值的因素。</p></div>
+      <div class="card"><h3>技术面</h3><p>技术面主要研究价格、成交量和技术指标，试图从市场行为中判断趋势、支撑阻力和买卖时机。</p></div>
+    </div>
+    <h2>3. Python 获取过去一年交易数据、画收盘价曲线并保存 CSV</h2>
+    <p>静态网页不能直接安全调用 Tushare token。请在本地设置环境变量 `TUSHARE_TOKEN`，再运行下列代码或 `notebooks/task1.ipynb`。</p>
+    <div class="code-wrap">
+      <div class="code-head"><span>task1 Python 代码</span><button data-copy="task1Code">复制代码</button></div>
+      <pre><code id="task1Code">import os
+from datetime import datetime, timedelta
+import tushare as ts
+import pandas as pd
+import matplotlib.pyplot as plt
+
+token = os.getenv("TUSHARE_TOKEN")
+assert token, "请先设置环境变量 TUSHARE_TOKEN"
+ts.set_token(token)
+pro = ts.pro_api()
+
+ts_code = "000001.SZ"
+end_date = datetime.today().strftime("%Y%m%d")
+start_date = (datetime.today() - timedelta(days=365)).strftime("%Y%m%d")
+
+df = pro.daily(ts_code=ts_code, start_date=start_date, end_date=end_date)
+df = df.sort_values("trade_date")
+df.to_csv("task1_daily_data.csv", index=False, encoding="utf-8-sig")
+
+plt.figure(figsize=(10, 5))
+plt.plot(pd.to_datetime(df["trade_date"]), df["close"], label="close")
+plt.title(f"{ts_code} 每日收盘价")
+plt.xlabel("日期")
+plt.ylabel("收盘价")
+plt.legend()
+plt.grid(True)
+plt.show()</code></pre>
+    </div>
+    <h2>网页演示</h2>
+    <p>下方使用模拟数据演示“收盘价曲线”和“导出 CSV”的效果。</p>
+    <div class="chart-shell"><canvas id="closeChart"></canvas></div>
+    <div class="actions"><button id="downloadDemoCsv">下载模拟 CSV</button></div>
+    <textarea id="csvPreview" readonly></textarea>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Task 2</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav">
+      <a class="brand" href="index.html">AI Trader</a>
+      <div class="nav-links"><a href="task1.html">Task 1</a><a class="active" href="task2.html">Task 2</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <h1>Task 2：数据诊断与技术指标</h1>
+    <h2>1. 数据基础诊断分析</h2>
+    <p>基础诊断包括检查缺失值、数据类型、重复日期、极端值，并计算均值、标准差、最小值、最大值、分位数等描述性统计量。</p>
+    <div class="form-row"><label>上传 task1 CSV<input id="csvInput" type="file" accept=".csv"></label></div>
+    <div id="diagnosis" class="panel"></div>
+    <h2>2. RSI、MACD、布林带的计算方法和作用</h2>
+    <table>
+      <tr><th>指标</th><th>计算方法</th><th>作用</th></tr>
+      <tr><td>RSI</td><td>RSI = 100 - 100 / (1 + RS)，RS 为 N 日平均上涨幅度除以平均下跌幅度，常用 N=14。</td><td>衡量超买超卖。RSI 较高可能偏超买，较低可能偏超卖。</td></tr>
+      <tr><td>MACD</td><td>DIF = EMA(12) - EMA(26)，DEA = EMA(DIF, 9)，MACD = 2 × (DIF - DEA)。</td><td>观察趋势强弱和动量变化，常用金叉、死叉辅助判断。</td></tr>
+      <tr><td>布林带</td><td>中轨 = N 日均线，上轨 = 中轨 + 2 × 标准差，下轨 = 中轨 - 2 × 标准差，常用 N=20。</td><td>判断波动区间、压力支撑和价格偏离程度。</td></tr>
+    </table>
+    <h2>3. Python 加载数据、计算指标并可视化</h2>
+    <div class="code-wrap">
+      <div class="code-head"><span>task2 Python 代码</span><button data-copy="task2Code">复制代码</button></div>
+      <pre><code id="task2Code">import pandas as pd
+import matplotlib.pyplot as plt
+
+df = pd.read_csv("task1_daily_data.csv")
+df = df.sort_values("trade_date")
+close = df["close"]
+
+delta = close.diff()
+gain = delta.clip(lower=0).rolling(14).mean()
+loss = (-delta.clip(upper=0)).rolling(14).mean()
+df["RSI"] = 100 - 100 / (1 + gain / loss)
+
+ema12 = close.ewm(span=12, adjust=False).mean()
+ema26 = close.ewm(span=26, adjust=False).mean()
+df["DIF"] = ema12 - ema26
+df["DEA"] = df["DIF"].ewm(span=9, adjust=False).mean()
+df["MACD"] = 2 * (df["DIF"] - df["DEA"])
+
+df["BOLL_MID"] = close.rolling(20).mean()
+df["BOLL_STD"] = close.rolling(20).std()
+df["BOLL_UPPER"] = df["BOLL_MID"] + 2 * df["BOLL_STD"]
+df["BOLL_LOWER"] = df["BOLL_MID"] - 2 * df["BOLL_STD"]
+
+direction = close.diff().apply(lambda x: 1 if x > 0 else (-1 if x < 0 else 0))
+df["OBV"] = (direction * df["vol"]).fillna(0).cumsum()
+
+print(df.isna().sum())
+print(df.describe())
+
+df[["close", "BOLL_UPPER", "BOLL_MID", "BOLL_LOWER"]].plot(figsize=(12, 5), title="Bollinger Bands")
+plt.show()
+df[["RSI"]].plot(figsize=(12, 3), title="RSI")
+plt.show()
+df[["DIF", "DEA", "MACD"]].plot(figsize=(12, 4), title="MACD")
+plt.show()
+df[["OBV"]].plot(figsize=(12, 3), title="OBV")
+plt.show()</code></pre>
+    </div>
+    <h2>4. 扩展指标：OBV 能量潮</h2>
+    <p>OBV 根据价格涨跌方向累计成交量：收盘价上涨则加成交量，下跌则减成交量，持平则不变。它常用于观察成交量是否支持价格趋势。</p>
+    <div class="chart-shell"><canvas id="rsiChart"></canvas></div>
+    <div class="chart-shell"><canvas id="macdChart"></canvas></div>
+    <div class="chart-shell"><canvas id="bollChart"></canvas></div>
+    <div class="chart-shell"><canvas id="obvChart"></canvas></div>
+  </main>
+  <script src="script.js"></script>
+</body>
+</html>
